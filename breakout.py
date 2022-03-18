@@ -1,12 +1,11 @@
 import sys
 import gym
 from agents import Agents
-from ale_py import ALEInterface
+from qlearningAgents import QLearningAgents
 
 class Breakout:
 
-    def __init__(self, agents, alpha=1.0, epsilon=0.05, gamma=0.8, numTraining=1000):
-        self.agents = agents
+    def __init__(self, alpha=0.5, gamma=0.5, epsilon=0.3, numTraining=10000):
         self.alpha = alpha
         self.epsilon = epsilon
         self.gamma = gamma
@@ -17,17 +16,25 @@ class Breakout:
 
             :return: simulation
         """
-        env = gym.make('Breakout-ram-v4', render_mode='human', obs_type='ram')
-        obv = env.reset()
+        env = gym.make('MountainCar-v0')
 
-        for _ in range(1000):
+        # Initialize Agents
+        agents = QLearningAgents(env, self.alpha, self.gamma, self.epsilon)
 
-            obv, reward, done, info = env.step(3) # take a random action
-            print(obv, reward, done, info)
+        for idx in range(self.numTraing):
+            obv = env.reset()
+            done = False
+
+            while not done:
+                action = agents.getAction(tuple(obv))
+                new_obv, reward, done, info = env.step(action)
+                agents.update(tuple(obv), action, tuple(new_obv), reward)
+                obv = new_obv
+                env.render()
+                print(action, done, reward, idx)
 
         env.close()
 
 if __name__ == '__main__':
-    agent = Agents()
-    game = Breakout(agent)
+    game = Breakout()
     game.runOpenAi()
