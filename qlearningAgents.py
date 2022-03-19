@@ -100,3 +100,10 @@ class QLearningAgents(Agents):
          return action
 
 
+   def exportQTable(self, episode):
+      with open(f'readme_{episode}.txt', 'w') as f:
+         f.write(str(self.values))
+
+
+
+
