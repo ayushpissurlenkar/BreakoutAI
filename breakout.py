@@ -6,11 +6,10 @@ import numpy as np
 
 class Breakout:
 
-    def __init__(self, alpha=0.05, gamma=0.8, epsilon=0.2, numTraining=100000):
-        self.alpha = alpha
-        self.epsilon = epsilon
-        self.gamma = gamma
+    def __init__(self, agent, numTraining=100000, show_every_ep=1000):
+        self.agent = agent
         self.numTraining = numTraining
+        self.showEveryEp = show_every_ep
 
 
     def runOpenAi(self):
@@ -18,10 +17,6 @@ class Breakout:
 
             :return: simulation
         """
-        env = gym.make('Breakout-ram-v4', obs_type='ram', render_mode='human')
-
-        # Initialize Agents
-        agents = QLearningAgents(env, self.alpha, self.gamma, self.epsilon)
 
         def calc_discrete_state(state):
             """ Pre-process the breakout game state representation
@@ -29,46 +24,45 @@ class Breakout:
             :param state: represent the actual observation from the environment
             :return: represent the discrete state of the actual state
             """
-            """
-            print(f'Observation space high {env.observation_space.high} \n'
-                  f'Observation space low {env.observation_space.low} ')
-    
-            bucket = (env.observation_space.high - env.observation_space.low) \
-                      /[10,10]
-            discrete_state = (state - env.observation_space.low)/bucket
-            print(f'Observation space high {env.observation_space.high} \n'
-                  f'Observation space low {env.observation_space.low} \n'
-                  f'Observation state space {state} \n'
-                  f'Observation discrete state space {discrete_state.astype(np.int)}')
-            """
+            ball_position = (state[99], state[101])
+            paddle_position = state[72]
+            blocks = tuple(state[0:30])
 
-            return tuple(state)
+            return tuple([ball_position, paddle_position, blocks])
 
         for idx in range(self.numTraining):
+            if idx % self.showEveryEp == 0:
+                env = gym.make('Breakout-ram-v4', obs_type='ram', render_mode="human")
+                self.agent.loadEnvironment(env)
+            else:
+                env = gym.make('Breakout-ram-v4', obs_type='ram', render_mode=None)
+                self.agent.loadEnvironment(env)
+
             obv = env.reset()
             done = False
 
             dis_obv = calc_discrete_state(obv)
 
             while not done:
-                action = agents.getAction(dis_obv)
+                # Retrieve action from agent
+                action = self.agent.getAction(dis_obv)
+
+                # Get new Observation from the environment
                 new_obv, reward, done, info = env.step(action)
-                print(dis_obv)
                 dis_new_obv = calc_discrete_state(new_obv)
-                agents.update(dis_obv, action, dis_new_obv, reward)
+
+                # Update Agent
+                self.agent.update(dis_obv, action, dis_new_obv, reward)
                 dis_obv = dis_new_obv
+
                 print(action, done, reward, idx)
 
-                """
-                if idx % 1000 == 0:
-                    env.render() 
-                """
-
-            if idx % 1000 == 0:
-                agents.exportQTable(idx)
+            if idx % self.showEveryEp == 0:
+                self.agent.exportQTable(idx)
 
         env.close()
 
 if __name__ == '__main__':
-    game = Breakout()
+    qLearningAgent = QLearningAgents(alpha=0.05, gamma=0.8, epsilon=0.2)
+    game = Breakout(qLearningAgent)
     game.runOpenAi()

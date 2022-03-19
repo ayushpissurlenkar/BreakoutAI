@@ -15,8 +15,8 @@ class QLearningAgents(Agents):
      - update: Update the Q_value table
   """
 
-   def __init__(self, env, alpha, gamma, epsilon):
-      self.env = env
+   def __init__(self, alpha, gamma, epsilon):
+      self.env = None
       self.alpha = alpha
       self.gamma = gamma
       self.epsilon = epsilon
@@ -103,6 +103,10 @@ class QLearningAgents(Agents):
    def exportQTable(self, episode):
       with open(f'readme_{episode}.txt', 'w') as f:
          f.write(str(self.values))
+
+   def loadEnvironment(self, env):
+      self.env = env
+
 
 
 

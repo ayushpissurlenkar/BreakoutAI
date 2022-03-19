@@ -18,3 +18,11 @@ class Agents:
         """
 
         util.raiseNotDefined()
+
+    def loadEnvironment(self, env):
+        """
+        Given OpenAI Gym Environment load the environment to the agents
+
+        :param env: Represent the OpenAI gym environment
+        :return:
+        """
