@@ -10,7 +10,7 @@ class Breakout:
         self.alpha = alpha
         self.epsilon = epsilon
         self.gamma = gamma
-        self.numTraing = numTraining
+        self.numTraining = numTraining
 
 
     def runOpenAi(self):
@@ -18,18 +18,33 @@ class Breakout:
 
             :return: simulation
         """
-        env = gym.make('MountainCar-v0')
+        env = gym.make('Breakout-ram-v4', obs_type='ram', render_mode='human')
 
         # Initialize Agents
         agents = QLearningAgents(env, self.alpha, self.gamma, self.epsilon)
 
         def calc_discrete_state(state):
-            buckets = (env.observation_space.high - env.observation_space.low) \
-                      / [10, 10]
-            discrete_state = (state - env.observation_space.low)/buckets
-            return tuple(discrete_state.astype(np.int))
+            """ Pre-process the breakout game state representation
 
-        for idx in range(self.numTraing):
+            :param state: represent the actual observation from the environment
+            :return: represent the discrete state of the actual state
+            """
+            """
+            print(f'Observation space high {env.observation_space.high} \n'
+                  f'Observation space low {env.observation_space.low} ')
+    
+            bucket = (env.observation_space.high - env.observation_space.low) \
+                      /[10,10]
+            discrete_state = (state - env.observation_space.low)/bucket
+            print(f'Observation space high {env.observation_space.high} \n'
+                  f'Observation space low {env.observation_space.low} \n'
+                  f'Observation state space {state} \n'
+                  f'Observation discrete state space {discrete_state.astype(np.int)}')
+            """
+
+            return tuple(state)
+
+        for idx in range(self.numTraining):
             obv = env.reset()
             done = False
 
@@ -38,13 +53,16 @@ class Breakout:
             while not done:
                 action = agents.getAction(dis_obv)
                 new_obv, reward, done, info = env.step(action)
+                print(dis_obv)
                 dis_new_obv = calc_discrete_state(new_obv)
                 agents.update(dis_obv, action, dis_new_obv, reward)
                 dis_obv = dis_new_obv
                 print(action, done, reward, idx)
 
+                """
                 if idx % 1000 == 0:
-                    env.render()
+                    env.render() 
+                """
 
             if idx % 1000 == 0:
                 agents.exportQTable(idx)
