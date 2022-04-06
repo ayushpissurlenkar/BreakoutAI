@@ -1,6 +1,7 @@
 from agents import Agents
 import util
 import random
+import pickle
 
 
 class QLearningAgents(Agents):
@@ -63,7 +64,7 @@ class QLearningAgents(Agents):
          if self.getQValue(state, action) == opt_value:
             opt_avaliable.append(action)
 
-      print("Opt_Avaliable ", opt_avaliable)
+      # print("Opt_Avaliable ", opt_avaliable)
       return random.choice(opt_avaliable)
 
    def update(self, state, action, newState, reward):
@@ -92,20 +93,47 @@ class QLearningAgents(Agents):
 
       if util.flipCoin(self.epsilon):
          action = self.env.action_space.sample()
-         print("Random Action ", action)
+         # print("Random Action ", action)
          return action
       else:
          action = self.computeActionFromQValues(state)
-         print("Optimal Action ", action)
+         # print("Optimal Action ", action)
          return action
 
 
    def exportQTable(self, episode):
-      with open(f'readme_{episode}.txt', 'w') as f:
-         f.write(str(self.values))
+      """ Export the trained model for later reference
+
+      :param episode: represent the episode which is saved
+      :return: pickle file of q-value table
+      """
+      self.values['episode'] = episode
+      pickle.dump(self.values, open(f'finalized_model_{episode}.sav', 'wb'))
 
    def loadEnvironment(self, env):
+      """ Given the openAI gym environment load the environment
+
+      :param env: Represent the openAI gym environment
+      :return: set the environment for the Q-Learning Agent
+      """
       self.env = env
+
+   def importQTable(self, filepath):
+      """ Given the model set up the Q-table for the q-learning
+          agent
+
+      :param filepath: represent the file path of q-learning model
+      :return: set the q-learning agent with loaded model
+      """
+      self.values = pickle.load(open(filepath, 'rb'))
+
+   def getEpisode(self):
+      """ Return the latest episode that is saved
+
+      :return: the epsidoe that is saved
+      """
+      return self.values['episode']
+
 
 
 
