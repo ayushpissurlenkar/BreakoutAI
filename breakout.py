@@ -39,9 +39,9 @@ class Breakout:
             done = False
             preprocess_env = Environment(obv)
 
-            dis_obv = preprocess_env.get_discrete_state_breakout_v1(obv, obv)
+            dis_obv = preprocess_env.get_discrete_state_breakout_v2(obv, obv)
 
-            # print(f'The initial observation of the block {obv[0:72]}')
+            # print(f'The initial observation of the block {obv[103]}')
 
             while not done:
                 # Retrieve action from agent
@@ -51,28 +51,31 @@ class Breakout:
 
                 # Get new Observation from the environment
                 new_obv, reward, done, info = env.step(action)
-                dis_new_obv = preprocess_env.get_discrete_state_breakout_v1(prev_obv, new_obv)
+
+                mod_reward = preprocess_env.breakout_reward_func(prev_obv, new_obv, reward)
+                dis_new_obv = preprocess_env.get_discrete_state_breakout_v2(prev_obv, new_obv)
 
                 # Update Agent
-                self.agent.update(dis_obv, action, dis_new_obv, reward)
+                self.agent.update(dis_obv, action, dis_new_obv, mod_reward)
                 dis_obv = dis_new_obv
                 obv = new_obv
 
-                # print(f'The paddle x position is {obv[72]} and the ball x,y position ({obv[99]},{obv[101]}) taking action {action}')
+                #print(f'The paddle x position is {obv[72]} and the ball x,y position ({obv[99]},{obv[101]}) taking action {action} and reward {mod_reward}')
 
                 if reward >= 1:
                     old_state = np.array(prev_obv[0:72])
                     new_state = np.array(obv[0:72])
-                    # print(f'HITTTTTT The paddle x position is {obv[72]} and the ball x,y position ({obv[99]},{obv[101]})')
+                    #print(f'HITTTTTT The paddle x position is {obv[72]} and the ball x,y position ({obv[99]},{obv[101]})')
                     # print(f'The old state is \n {old_state} \n and the new state is \n {new_state} \n and The difference is \n {new_state - old_state}')
 
             self.avgScore.append(new_obv[84])
+            # print(f'The {episode} episode score {new_obv[84]}')
 
             if idx % self.showEveryEp == 0:
                 avg_score = self.calculateAvgScore()
                 print(f'The average score {avg_score} for interval {episode - self.showEveryEp} to {episode}')
                 self.resetAvgScore()
-                # self.agent.exportQTable(episode)
+                self.agent.exportQTable(episode)
 
         env.close()
 
@@ -85,9 +88,10 @@ class Breakout:
 
 
 if __name__ == '__main__':
-    qLearningAgent = QLearningAgents(alpha=0.05, gamma=0.8, epsilon=0.2)
+    qLearningAgent = QLearningAgents(alpha=0.01, gamma=0.99, epsilon=0.2)
+    # qLearningAgent.importQTable('finalized_model_27000.sav')
     reflexAgents = ReflexAgents()
 
     # Import Q-Value from previous Training
-    game = Breakout(reflexAgents)
+    game = Breakout(qLearningAgent, show_every_ep=500)
     game.runOpenAi()

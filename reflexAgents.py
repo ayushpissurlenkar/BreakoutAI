@@ -1,4 +1,5 @@
 import random
+import util
 
 from agents import Agents
 
@@ -11,6 +12,7 @@ class ReflexAgents(Agents):
 
     def __init__(self):
         self.env = None
+        self.episode = util.Counter()
 
     def getAction(self, state):
         """

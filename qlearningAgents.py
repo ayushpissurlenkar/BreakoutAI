@@ -2,6 +2,7 @@ from agents import Agents
 import util
 import random
 import pickle
+from reflexAgents import ReflexAgents
 
 
 class QLearningAgents(Agents):
@@ -22,6 +23,7 @@ class QLearningAgents(Agents):
       self.gamma = gamma
       self.epsilon = epsilon
       self.values = util.Counter()
+      self.heatMap = util.Counter()
 
 
    def getQValue(self,state, action):
@@ -81,6 +83,9 @@ class QLearningAgents(Agents):
                 self.alpha * (reward + self.gamma * self.computeValueFromQValues(newState))
       # print("From Q Update ", q_value, reward)
       self.values[(state, action)] = q_value
+
+      # Update HeatMap
+      self.heatMap[(state,action)] = self.heatMap[(state,action)] + 1
       # print("From Q Update Q table ", self.values)
 
 
@@ -92,6 +97,8 @@ class QLearningAgents(Agents):
       """
 
       if util.flipCoin(self.epsilon):
+         # Using Reflex Agent to train
+         # action = ReflexAgents().getAction(state)
          action = self.env.action_space.sample()
          # print("Random Action ", action)
          return action
@@ -109,6 +116,8 @@ class QLearningAgents(Agents):
       """
       self.values['episode'] = episode
       pickle.dump(self.values, open(f'finalized_model_{episode}.sav', 'wb'))
+
+      pickle.dump(self.heatMap, open(f'heat_map_q_table.sav','wb'))
 
    def loadEnvironment(self, env):
       """ Given the openAI gym environment load the environment
@@ -133,6 +142,9 @@ class QLearningAgents(Agents):
       :return: the epsidoe that is saved
       """
       return self.values['episode']
+
+   def setAlpha(self, alpha):
+      self.alpha = alpha
 
 
 
