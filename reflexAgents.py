@@ -22,7 +22,8 @@ class ReflexAgents(Agents):
         :param state:
         :return: action that will manipulate the environment
         """
-        ball_pos, paddle_pos, directional_v = state
+
+        ball_pos, paddle_pos, vel, directional_v = state
 
         ball_pos_x, ball_pos_y = ball_pos
 
@@ -34,6 +35,7 @@ class ReflexAgents(Agents):
             return random.choice([3,1])
         else:
             return random.choice([0,1])
+
 
     def loadEnvironment(self, env):
         """

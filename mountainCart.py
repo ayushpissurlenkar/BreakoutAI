@@ -7,7 +7,7 @@ from qlearningAgents import QLearningAgents
 from reflexAgents import ReflexAgents
 import numpy as np
 
-class Breakout:
+class MountainCart:
 
     def __init__(self, agent, numTraining=1000000, show_every_ep=1000):
         self.agent = agent
@@ -26,22 +26,16 @@ class Breakout:
 
         for idx in range(self.numTraining):
             episode = idx + loadedTraining
-
-
-            if episode % self.showEveryEp == 0:
-                env = gym.make('BreakoutNoFrameskip-v4', obs_type='ram', render_mode=None)
-                self.agent.loadEnvironment(env)
-            else:
-                env = gym.make('BreakoutNoFrameskip-v4', obs_type='ram', render_mode=None)
-                self.agent.loadEnvironment(env)
+            env = gym.make('MountainCar-v0')
+            self.agent.loadEnvironment(env)
 
             obv = env.reset()
             done = False
             preprocess_env = Environment(env)
 
-            dis_obv = preprocess_env.get_discrete_state_breakout_v1(obv)
+            dis_obv = preprocess_env.get_discrete_state_mountaincart(obv)
 
-            # print(f'The initial observation of the block {obv[95], obv[103], obv[105]}')
+            # print(f'The initial observation of the block {dis_obv}')
 
             while not done:
                 # Retrieve action from agent
@@ -51,19 +45,20 @@ class Breakout:
 
                 # Get new Observation from the environment
                 new_obv, reward, done, info = env.step(action)
-
-                mod_reward = preprocess_env.breakout_reward_func(prev_obv, new_obv, reward)
-                dis_new_obv = preprocess_env.get_discrete_state_breakout_v1(new_obv)
+                dis_new_obv = preprocess_env.get_discrete_state_mountaincart(new_obv)
 
                 # Update Agent
-                # self.agent.update(dis_obv, action, dis_new_obv, mod_reward)
+                self.agent.update(dis_obv, action, dis_new_obv, reward)
                 dis_obv = dis_new_obv
                 obv = new_obv
 
+            if 'TimeLimit.truncated' not in info:
+                self.avgScore.append(1)
+            else:
+                self.avgScore.append(-1)
 
-            self.avgScore.append(new_obv[84])
-            self.agent.add_ppg(new_obv[84])
-            # print(f'The {episode} episode score {new_obv[84]}')
+
+
 
             if idx % self.showEveryEp == 0:
                 avg_score = self.calculateAvgScore()
@@ -82,9 +77,10 @@ class Breakout:
 
 
 if __name__ == '__main__':
-    qLearningAgent = QLearningAgents(alpha=0.00, gamma=0.99, epsilon=1.0)
+    qLearningAgent = QLearningAgents(alpha=0.01, gamma=0.99, epsilon=0.02)
+    # qLearningAgent.importQTable('finalized_model_13000.sav')
     reflexAgents = ReflexAgents()
 
     # Import Q-Value from previous Training
-    game = Breakout(qLearningAgent, show_every_ep=500)
+    game = MountainCart(qLearningAgent, show_every_ep=1000)
     game.runOpenAi()

@@ -24,6 +24,7 @@ class QLearningAgents(Agents):
       self.epsilon = epsilon
       self.values = util.Counter()
       self.heatMap = util.Counter()
+      self.scorePerEp = []
 
 
    def getQValue(self,state, action):
@@ -98,8 +99,8 @@ class QLearningAgents(Agents):
 
       if util.flipCoin(self.epsilon):
          # Using Reflex Agent to train
-         # action = ReflexAgents().getAction(state)
-         action = self.env.action_space.sample()
+         action = ReflexAgents().getAction(state)
+         # action = self.env.action_space.sample()
          # print("Random Action ", action)
          return action
       else:
@@ -117,7 +118,8 @@ class QLearningAgents(Agents):
       self.values['episode'] = episode
       pickle.dump(self.values, open(f'finalized_model_{episode}.sav', 'wb'))
 
-      pickle.dump(self.heatMap, open(f'heat_map_q_table.sav','wb'))
+      pickle.dump(self.heatMap, open(f'heat_map_q_table.sav', 'wb'))
+      pickle.dump(self.scorePerEp, open('q_learning_ppg.sav', 'wb'))
 
    def loadEnvironment(self, env):
       """ Given the openAI gym environment load the environment
@@ -135,6 +137,8 @@ class QLearningAgents(Agents):
       :return: set the q-learning agent with loaded model
       """
       self.values = pickle.load(open(filepath, 'rb'))
+      self.heatMap = pickle.load(open('Training/QLearning-Breakout/Breakout_V1_with_ModQ/heat_map_q_table.sav', 'rb'))
+      self.scorePerEp = pickle.load(open('Training/QLearning-Breakout/Breakout_V1_with_ModQ/q_learning_ppg.sav', 'rb'))
 
    def getEpisode(self):
       """ Return the latest episode that is saved
@@ -145,6 +149,11 @@ class QLearningAgents(Agents):
 
    def setAlpha(self, alpha):
       self.alpha = alpha
+
+   def add_ppg(self, score):
+      self.scorePerEp.append(score)
+
+
 
 
 
