@@ -60,15 +60,17 @@ class QLearningAgents(Agents):
       :param state:
       :return: Return optimal action that maximize the Q(s,a)
       """
-      opt_avaliable = []
-      opt_value = self.computeValueFromQValues(state)
+      value = float('-inf')
+      opt_action = None
 
       for action in range(self.env.action_space.n):
-         if self.getQValue(state, action) == opt_value:
-            opt_avaliable.append(action)
+         q_value = self.getQValue(state, action)
 
-      # print("Opt_Avaliable ", opt_avaliable)
-      return random.choice(opt_avaliable)
+         if q_value > value:
+            value = q_value
+            opt_action = action
+
+      return opt_action
 
    def update(self, state, action, newState, reward):
       """
@@ -154,6 +156,115 @@ class QLearningAgents(Agents):
       self.scorePerEp.append(score)
 
 
+class ApproximateQLearning(Agents):
+   """
+   Approximate Q Learning Agent via Function Approximator
+
+     Function Compute:
+     - getQValue: Return the Q Value for each state
+     - computeValueFromQValues: Return max_{a} Q(s,a) from legal action
+     - computeActionFromQValues: Return action that maximize Q(s,a) argmax_{a} Q(s,a)
+     - getAction: Return Action for which agent need to act
+     - update: Update the Q_value table
+   """
+
+   def __init__(self, alpha, gamma, epsilon, featureExtractor):
+      self.env = None
+      self.alpha = alpha
+      self.gamma = gamma
+      self.epsilon = epsilon
+      self.weight = util.Counter()
+      self.featureExtractor = featureExtractor
+
+
+   def getWeights(self):
+      return self.weights
+
+   def getQValue(self, state, action):
+      """
+      Should return Q(state,action) = w * featureVector
+      where * is the dotProduct operator
+      """
+      q_value = 0
+
+      # Dot Product Feature and weight
+      for feature, val in self.featExtractor.getVectorizedFeatures(state, action).items():
+         q_value += self.weights[feature] * val
+
+      return q_value
+
+
+   def update(self, state, action, nextState, reward):
+      """
+         Should update your weights based on transition
+      """
+
+      # Calculate Difference according to Q-Approx from Instruction
+      diff = (reward + self.discount * self.getValue(nextState)) - self.getQValue(state, action)
+
+      # Assign feature with discounted learning value
+      for feature, val in self.getVectorizedFeatures.getFeatures(state, action).items():
+         self.weights[feature] = self.weights[feature] + self.alpha * diff * val
+
+
+   def computeValueFromQValues(self, state):
+      """
+      Return max_{a} Q(s,a)
+
+      :param state:
+      :return: Return the maximum Q-Value from all possible action given a state
+      """
+      value = []
+
+      for action in range(self.env.action_space.n):
+         value.append(self.getQValue(state, action))
+
+      return max(value)
+
+
+   def computeActionFromQValues(self, state):
+      """
+      Return argmax_{a} Q(s,a) I.e Policy Extraction
+
+      :param state:
+      :return: Return optimal action that maximize the Q(s,a)
+      """
+      value = float('-inf')
+      opt_action = None
+
+      for action in range(self.env.action_space.n):
+         q_value = self.getQValue(state, action)
+
+         if q_value > value:
+            value = q_value
+            opt_action = action
+
+      return opt_action
+
+   def getAction(self, state):
+      """
+
+      :param state:
+      :return:
+      """
+
+      if util.flipCoin(self.epsilon):
+         action = self.env.action_space.sample()
+         # print("Random Action ", action)
+         return action
+      else:
+         action = self.computeActionFromQValues(state)
+         # print("Optimal Action ", action)
+         return action
+
+
+   def loadEnvironment(self, env):
+      """ Given the openAI gym environment load the environment
+
+      :param env: Represent the openAI gym environment
+      :return: set the environment for the Q-Learning Agent
+      """
+      self.env = env
 
 
 

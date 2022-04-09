@@ -82,7 +82,7 @@ class Breakout:
 
 
 if __name__ == '__main__':
-    qLearningAgent = QLearningAgents(alpha=0.00, gamma=0.99, epsilon=1.0)
+    qLearningAgent = QLearningAgents(alpha=0.01, gamma=0.99, epsilon=0.2)
     reflexAgents = ReflexAgents()
 
     # Import Q-Value from previous Training
