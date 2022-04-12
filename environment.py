@@ -1,6 +1,8 @@
 import sys
 
 import gym
+from scipy.spatial import distance
+import math
 import numpy as np
 np.set_printoptions(threshold=sys.maxsize)
 
@@ -33,48 +35,33 @@ class Environment:
 
         return tuple([ball_position, paddle_position, vel, direction_vector])
 
-    def get_discrete_state_breakout_v2(self, old_state, new_state):
-        """ Pre-process the breakout game state representation
-
-        :param state: represent the actual observation from the environment
-        :return: represent the relative position of paddle and ball
+    def get_discrete_state_breakout_polar(self, prev, state):
         """
+        Represent the Polar Coordinate Representation of paddle and ball
 
-        old_x = int(old_state[99])
-        old_y = int(old_state[101])
-        new_x = int(new_state[99])
-        new_y = int(new_state[101])
-        paddle_position = int(new_state[72])
+        :param state: Represent given current state
+        :return: polor Representation of the breakout paddle and ball
+        """
+        old_x = int(prev[99])
+        old_y = int(prev[101])
+        new_x = int(state[99])
+        new_y = int(state[101])
+        paddle_position = int(state[72])
 
-        # Compute Direction of The Ball
-        ball_is_moving = 'STAY'
+        rel_x = paddle_position - new_x
+        paddle_y = -1 * 177 % 256
+        rel_y = -1 * new_y % 256
 
-        if new_x > old_x:
-            ball_is_moving = 'MOVING_RIGHT'
-        else:
-            ball_is_moving = 'MOVING_LEFT'
+        distance_to_ball = round(distance.euclidean((new_x, rel_y),(paddle_position, paddle_y)))
 
-        # Compute Ball position Relative to paddle position
-        paddle_rel_ball = 'STAY'
+        angle = 90
+        if rel_x != 0:
+            angle = round(math.degrees(math.atan((rel_y - paddle_y)/rel_x)))
 
-        if new_x > paddle_position:
-            paddle_rel_ball = 'BALL_IS_RIGHT_TO_PADDLE'
-        else:
-            paddle_rel_ball = 'BALL_IS_LEFT_TO_PADDLE'
+        ball_direction = (new_x - old_x, new_y - old_y)
+        wall_detect = 36 <= new_y <= 76 or 180 <= new_y <= 220
 
-        return tuple([ball_is_moving, paddle_rel_ball,new_y])
-
-    def get_discrete_state_breakout_v3(self, old_state, new_state):
-        old_x = int(old_state[99])
-        old_y = int(old_state[101])
-        new_x = int(new_state[99])
-        new_y = int(new_state[101])
-        paddle_position = int(new_state[72])
-
-        relative_pos = (paddle_position - new_x, new_y)
-        directional = (new_state[103], new_state[105])
-
-        return tuple([relative_pos, directional])
+        return tuple([angle, distance_to_ball, ball_direction, wall_detect])
 
 
     def get_discrete_state_mountaincart(self, state):

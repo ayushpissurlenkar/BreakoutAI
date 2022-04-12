@@ -51,15 +51,14 @@ class Breakout:
 
                 # Get new Observation from the environment
                 new_obv, reward, done, info = env.step(action)
-
                 mod_reward = preprocess_env.breakout_reward_func(prev_obv, new_obv, reward)
+
                 dis_new_obv = preprocess_env.get_discrete_state_breakout_v1(new_obv)
 
                 # Update Agent
-                # self.agent.update(dis_obv, action, dis_new_obv, mod_reward)
+                self.agent.update(dis_obv, action, dis_new_obv, mod_reward)
                 dis_obv = dis_new_obv
                 obv = new_obv
-
 
             self.avgScore.append(new_obv[84])
             self.agent.add_ppg(new_obv[84])
@@ -82,9 +81,10 @@ class Breakout:
 
 
 if __name__ == '__main__':
-    qLearningAgent = QLearningAgents(alpha=0.01, gamma=0.99, epsilon=0.2)
+    qLearningAgent = QLearningAgents(alpha=0.01, gamma=0.99, epsilon=0.02)
+    qLearningAgent.importQTable('finalized_model_53000.sav')
     reflexAgents = ReflexAgents()
 
     # Import Q-Value from previous Training
-    game = Breakout(qLearningAgent, show_every_ep=500)
+    game = Breakout(qLearningAgent, show_every_ep=1000)
     game.runOpenAi()
