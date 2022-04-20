@@ -102,7 +102,7 @@ class QLearningAgents(Agents):
       if util.flipCoin(self.epsilon):
          # Using Reflex Agent to train
          # action = ReflexAgents().getAction(state)
-         action = self.env.action_space.sample()
+         action = random.choice([1,2,3])
          # print("Random Action ", action)
          return action
       else:

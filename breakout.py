@@ -29,10 +29,10 @@ class Breakout:
 
 
             if episode % self.showEveryEp == 0:
-                env = gym.make('BreakoutNoFrameskip-v4', obs_type='ram', render_mode=None)
+                env = gym.make('BreakoutNoFrameskip-v4', obs_type='ram', render_mode='human')
                 self.agent.loadEnvironment(env)
             else:
-                env = gym.make('BreakoutNoFrameskip-v4', obs_type='ram', render_mode=None)
+                env = gym.make('BreakoutNoFrameskip-v4', obs_type='ram', render_mode='human')
                 self.agent.loadEnvironment(env)
 
             obv = env.reset()
